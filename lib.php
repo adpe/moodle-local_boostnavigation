@@ -690,6 +690,34 @@ function local_boostnavigation_extend_navigation_course(navigation_node $navigat
             $navigation->add_node($competenciesnode);
         }
     }
+    // FFHS MODIFICATION START.
+    global $CFG;
+
+    // Check if "Add responses links in the course-settings" is enabled in FFHS Boost
+    // and course format in course has no course-navbar enabled.
+    $courseformatoptions = course_get_format($COURSE)->get_format_options();
+    if (array_key_exists('displaycoursenavbar', $courseformatoptions) && $courseformatoptions['displaycoursenavbar']) {
+        return;
+    }
+
+    $config = get_config('theme_ffhs');
+    if (!$config->showresponsesincourse && !$config->showresponsesincoursesettings) {
+        return;
+    }
+
+    require_once($CFG->dirroot . '/theme/ffhs/locallib.php');
+    $instances = theme_ffhs_get_modulevaluation_responses($COURSE->id);
+
+    foreach ($instances as $instance) {
+        $url = new moodle_url('/scripts/modulevaluation/' . $instance['questionnairetype'] . '/index.php?code=' .
+                $instance['responsecode']);
+        $navigation->add(
+                $instance['title'], $url,
+                navigation_node::TYPE_CUSTOM,
+                null, $instance['responsecode'], null
+        );
+    }
+    // FFHS MODIFICATION END.
 }
 
 /**
